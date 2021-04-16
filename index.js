@@ -15,7 +15,7 @@ const limiter = rateLimit({
 //  apply to all requests
 app.use(limiter);
 
-var allowedOrigins = ['http://localhost:3000'];
+var allowedOrigins = ['http://localhost:3000', "https://ytly.vercel.app/"];
 
 app.use(cors({
   origin: function (origin, callback) {
