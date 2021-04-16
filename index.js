@@ -17,7 +17,8 @@ app.use(limiter);
 
 var allowedOrigins = ['http://localhost:3000', "https://ytly.vercel.app/"];
 
-app.use(cors({
+app.use(cors());
+{/* app.use(cors({
   origin: function (origin, callback) {
     // allow requests with no origin 
     // (like mobile apps or curl requests)
@@ -29,7 +30,7 @@ app.use(cors({
     }
     return callback(null, true);
   }
-}));
+})); */}
 app.options("*", cors());
 
 const port = 8080;
