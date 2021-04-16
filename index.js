@@ -32,7 +32,7 @@ app.use(cors({
 }));
 app.options("*", cors());
 
-const port = 3000;
+const port = 8080;
 
 app.get("/", (req, res) => {
   res.send("Welcome to ylight api")
