@@ -4,7 +4,8 @@ const express = require("express");
 const cors = require("cors");
 const cors_proxy = require('cors-anywhere');
 const rateLimit = require("express-rate-limit");
-var proxy = require('express-http-proxy');
+
+const nodemailer = require("nodemailer");
 
 const app = express();
 
@@ -33,11 +34,28 @@ app.use(cors());
   }
 })); */}
 app.options("*", cors());
-
+app.use(express.json());
 const port = 8080;
 
+const contactEmail = nodemailer.createTransport({
+  host: "smtp-mail.outlook.com",
+  port: 587,
+  auth: {
+    user: "gouravdas2927@live.com",
+    pass: "Vicky080",
+  },
+});
+
+contactEmail.verify((error) => {
+  if (error) {
+    console.log(error);
+  } else {
+    console.log("Ready to Send");
+  }
+});
+
 app.get("/", (req, res) => {
-  res.send("Welcome to ylight api")
+  res.send("Welcome to ytly music api")
 })
 
 app.get('/music', async (req, res) => {
@@ -73,10 +91,34 @@ app.get('/song', async (req, res) =>
   removeHeaders: [] // Do not remove any headers.
 }); */}
 
-app.use('/proxy/:proxyUrl*', (req, res) => {
-  req.url = req.url.replace('/proxy/', '/'); // Strip '/proxy' from the front of the URL, else the proxy won't work.
-  proxy('request', req, res);
+let proxy = cors_proxy.createServer({
+  originWhitelist: [], // Allow all origins
+  requireHeaders: ['origin', 'x-requestorigins'], // Do not require any headers.
+  removeHeaders: ['cookie', 'cookie2'] // Do not remove any headers.
 });
 
+app.get('/proxy/:proxyUrl*', (req, res) => {
+  req.url = req.url.replace('/proxy/', '/'); // Strip '/proxy' from the front of the URL, else the proxy won't work.
+  proxy.emit('request', req, res);
+});
+
+app.post("/contact", (req, res) => {
+  const name = req.body.name;
+  const email = req.body.email;
+  const message = req.body.message; 
+  const mail = {
+    from: name,
+    to: "gouravdas2927@live.com",
+    subject: "Contact Form Message",
+    html: `<p>Name: ${name}</p><p>Email: ${email}</p><p>Message: ${message}</p>`,
+  };
+  contactEmail.sendMail(mail, (error) => {
+    if (error) {
+      res.json({ status: "ERROR" });
+    } else {
+      res.json({ status: "Message Sent" });
+    }
+  });
+});
 
 app.listen(port, () => console.log(`Server is listening on port ${port}.`));
