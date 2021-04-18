@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const cors_proxy = require('cors-anywhere');
 const rateLimit = require("express-rate-limit");
+var proxy = require('express-http-proxy');
 
 const app = express();
 
@@ -39,7 +40,21 @@ app.get("/", (req, res) => {
   res.send("Welcome to ylight api")
 })
 
-
+app.get('/music', async (req, res) => {
+  var id = req.query.id;
+  ytdl
+    .getInfo(req.query.id)
+    .then(info => {
+      const audioFormats = ytdl(id, {
+            format: 'mp3',
+            filter: 'audioonly',
+            quality: 'highest'
+        })
+      res.header('Content-Disposition', `attachment; filename="test.mp3"`);
+      res.json(audioFormats)
+    })
+    .catch(err => res.status(400).json(err.message))
+})
 
 app.get('/song', async (req, res) =>
   ytdl
@@ -52,15 +67,15 @@ app.get('/song', async (req, res) =>
     .catch(err => res.status(400).json(err.message))
 )
 
-let proxy = cors_proxy.createServer({
+{/* let proxy = cors_proxy.createServer({
   originWhitelist: [], // Allow all origins
   requireHeaders: [], // Do not require any headers.
   removeHeaders: [] // Do not remove any headers.
-});
+}); */}
 
-app.get('/proxy/:proxyUrl*', (req, res) => {
+app.use('/proxy/:proxyUrl*', (req, res) => {
   req.url = req.url.replace('/proxy/', '/'); // Strip '/proxy' from the front of the URL, else the proxy won't work.
-  proxy.emit('request', req, res);
+  proxy('request', req, res);
 });
 
 
