@@ -116,9 +116,22 @@ app.post("/contact", (req, res) => {
     if (error) {
       res.json({ status: "ERROR" });
     } else {
-      res.json({ status: "Message Sent" });
+      res.status(200).json({ status: "Message Sent" });
     }
   });
 });
 
+app.get('/download', async (req, res) => {
+    var id = req.query.id;
+  ytdl
+    .getInfo(req.query.id)
+    .then(info => {
+      const audioFormats = ytdl(id, {
+            format: 'mp3',
+            filter: 'audioonly',
+            quality: 'highest'
+        }).pipe(res);
+    })
+    .catch(err => res.status(400).json(err.message))
+})
 app.listen(port, () => console.log(`Server is listening on port ${port}.`));
