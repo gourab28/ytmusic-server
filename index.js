@@ -1,4 +1,4 @@
-
+const AnyProxy = require('anyproxy');
 const ytdl = require("ytdl-core");
 const express = require("express");
 const cors = require("cors");
@@ -33,6 +33,25 @@ app.use(cors());
     return callback(null, true);
   }
 })); */}
+
+
+/// Proxy 
+
+const options = {
+  port: 8000,
+  webInterface: {
+    enable: true,
+    webPort: 8002
+  },
+  throttle: 10000,
+  forceProxyHttps: false,
+  wsIntercept: false,
+  silent: false
+};
+
+const proxyServer = new AnyProxy.ProxyServer(options);
+
+//Option
 app.options("*", cors());
 app.use(express.json());
 const port = 8080;
@@ -74,7 +93,8 @@ app.get('/music', async (req, res) => {
     .catch(err => res.status(400).json(err.message))
 })
 
-app.get('/song', async (req, res) =>
+proxyServer.on('ready', () => { 
+  app.get('/song', async (req, res) =>
   ytdl
     .getInfo(req.query.id)
     .then(info => {
@@ -84,7 +104,9 @@ app.get('/song', async (req, res) =>
     })
     .catch(err => res.status(400).json(err.message))
 )
+});
 
+proxyServer.start();
 {/* let proxy = cors_proxy.createServer({
   originWhitelist: [], // Allow all origins
   requireHeaders: [], // Do not require any headers.
@@ -134,4 +156,5 @@ app.get('/download', async (req, res) => {
     })
     .catch(err => res.status(400).json(err.message))
 })
+
 app.listen(port, () => console.log(`Server is listening on port ${port}.`));
